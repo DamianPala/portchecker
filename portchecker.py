@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 import socket
 import threading
+import requests
+import time
+
 import click
 import logging
 from pyfiglet import Figlet
@@ -74,6 +77,10 @@ def udp_server(port):
         _log.error(f'UDP socket on port {port} creating error: {e}')
 
 
+def get_external_ip_address() -> str:
+    return requests.get('http://ifconfig.me').text.strip()
+
+
 @cli.command()
 @optgroup.group('Ports', cls=RequiredAnyOptionGroup)
 @optgroup.option('-t', '--tcp-ports', multiple=True, type=click.INT, help='TCP ports to listen on')
@@ -81,6 +88,8 @@ def udp_server(port):
 @click.help_option('-h', '--help')
 def server(tcp_ports, udp_ports) -> None:
     """Start a server on specified ports."""
+
+    _log.info(f'Your IP address is: {get_external_ip_address()}')
 
     for port in tcp_ports:
         thread = threading.Thread(target=tcp_server, args=(port,), daemon=True)
@@ -92,7 +101,7 @@ def server(tcp_ports, udp_ports) -> None:
 
     try:
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         print('Exiting...')
 
